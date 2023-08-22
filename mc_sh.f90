@@ -1,10 +1,10 @@
-subroutine mcSpatialHet(SH, array, n_permutes, n_estimates, replacement)
+subroutine mcSpatialHet(SH, array, n_permutes, replacement)
     implicit none
     integer :: y1, y2, x1, x2
     integer subset_y, subset_x
     integer :: i, j, k, l, count
     real(kind=8), intent(out) :: SH ! note that kind=8 for double precision is specific to gfortran!!
-    integer, intent(in) :: n_permutes, n_estimates
+    integer, intent(in) :: n_permutes
     real(kind=8), dimension(:, :), intent(in) :: array
     logical, intent(in) :: replacement
     real(kind=8), dimension(:, :), allocatable :: hstack_array
@@ -29,7 +29,6 @@ subroutine mcSpatialHet(SH, array, n_permutes, n_estimates, replacement)
         return
     end if
 
-
     allocate(hstack_array(n, 2*m))
     allocate(v_hstack_array(2*n, 2*m))
     allocate(permutation_array(4, n_permutes))
@@ -40,7 +39,6 @@ subroutine mcSpatialHet(SH, array, n_permutes, n_estimates, replacement)
     v_hstack_array = transpose(reshape([transpose(hstack_array), transpose(hstack_array)], [2*n, 2*m]))
 
     do i = 1, n_permutes
-        ! max = 2*m
         call rectangleBounds(x1, x2, 1, n)
         call rectangleBounds(y1, y2, 1, m)
 
@@ -51,10 +49,8 @@ subroutine mcSpatialHet(SH, array, n_permutes, n_estimates, replacement)
 
         if (.not. replacement) then
             if (i > 1) then
-                
                 loop = .true.
                 duplicates = .false.
-
                 do while (loop)
                     ! check the permutations for duplicates, replace any if found
                     duplicates = .false.
@@ -90,33 +86,25 @@ subroutine mcSpatialHet(SH, array, n_permutes, n_estimates, replacement)
 
         subset_x = x2  - x1
         subset_y = y2  - y1
-
-        !print *, 'x-width', subset_x, 'y-width', subset_y
-        
         subarray_mean = 0.0
         count = 0
+
         do k = y1, y2-1
             do j = x1, x2-1
                 subarray_mean = subarray_mean + v_hstack_array(k, j)
                 count = count + 1
             end do
         end do
-            
         subarray_mean = subarray_mean / count
         G = G + abs(subarray_mean - array_mean)
-        !print *, 'mean = ', subarray_mean, 'G = ', G
-        !print *, G,x1,x2,y1,y2
     end do
 
-    !print *, 'G = ', G, 'total_permutes = ', total_permutes, 'n_permutes = ', n_permutes, 'n = ', n, 'm = ', m
-    !SH = total_permutes*G / n_permutes*n*n*m*m ! NOTE that the n_permutes are not unique so this may be off
     num = total_permutes*G 
     denom = real(n_permutes)*n*n*m*m
     SH = num / denom
-    !SH = G
-    !G = 0
     deallocate(hstack_array)
     deallocate(v_hstack_array)
+
 end subroutine mcSpatialHet
 
 subroutine rectangleBounds(l_bound, r_bound, min, max)
