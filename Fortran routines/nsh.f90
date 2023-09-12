@@ -42,7 +42,9 @@ subroutine normalizedSpatialHet(SH, array)
             count = 0
             do k = y1i, y2i-1
                 do j = 1, d1
-                    subarray_mean = subarray_mean + v_hstack_array(j, k) ! not sure why but I had to reverse j and k
+                    ! note that loop structure is y then x so access array 
+                    ! indices as j, k
+                    subarray_mean = subarray_mean + v_hstack_array(j, k) 
                     count = count + 1
                 end do
             end do
@@ -78,7 +80,6 @@ subroutine normalizedSpatialHet(SH, array)
             end do
         end do
     end do
-
     do x1 = 1, d1
         do x2 = 1, d1
             x1i = x1
@@ -95,6 +96,8 @@ subroutine normalizedSpatialHet(SH, array)
             count = 0
             do k = x1i, x2i-1
                 do j = 1, d2
+                    ! note that loop structure is x then y so access array 
+                    ! indices as k, j
                     subarray_mean = subarray_mean + v_hstack_array(k, j)
                     count = count + 1
                 end do
@@ -104,7 +107,6 @@ subroutine normalizedSpatialHet(SH, array)
             !print *, 'lp2', abs(subarray_mean - array_mean)
         end do
     end do
-
     SH = G / (N*(d1*(d1-1)+1)*(d2*(d2-1)+1))
     deallocate(hstack_array)
     deallocate(v_hstack_array)
